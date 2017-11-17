@@ -1,0 +1,237 @@
+package teamnet2;
+
+import javax.swing.JFrame;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Vector;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+public class sesiune extends JFrame{
+	private String numeUtilizatorSiEmail = new String();
+	private String numeUtilizator = new String();
+	private String email = new String();
+	private boolean introducereDate = false;
+	private boolean initializare = true;
+	private JTextField txtInput = new JTextField();
+	private JTextArea zonaChat = new JTextArea();
+	
+	public sesiune() {		
+		 this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	     this.setSize(600, 600);
+	     this.setVisible(true);
+	     this.setResizable(false);
+	     this.setLayout(null);
+	     this.setTitle("Conversatie cu un bot");
+	     
+	     txtInput.setLocation(2, 540);
+	     txtInput.setSize(590, 30);
+	     
+	     zonaChat.setLocation(15, 5);
+	     zonaChat.setSize(560, 510);
+	     zonaChat.setEditable(false);
+	     
+	     this.add(txtInput);
+	     this.add(zonaChat);
+	     
+	     zonaChat.append("Introduceti utilizatorul si adresa de e-mail: (separate prin spatiu)\n");
+	     
+	     try {
+	     Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+	     }
+	     catch(Exception e) {
+	    	 e.printStackTrace();
+	     }
+	     
+	     txtInput.addActionListener(new ActionListener(){
+	    	 public void actionPerformed(ActionEvent arg0) {
+	    		 int nrRanduri;
+	    		 int anNastere=-1;
+	    		 int anInceputDomnie=-1;
+	    		 int anSfarsitDomnie=-1;
+	    		 int anDeces=-1;
+	    		 int numeEmail=1;
+	    		 String locatie = new String();
+	    		 String numeDomnitor = new String();
+	    		 boolean domni = false;
+	    		 boolean nascut = false;
+	    		 boolean murit = false;
+	    		 boolean ani = false;
+	    		 boolean an = false;
+	    		 boolean intre = false;
+	    		 boolean cat = false;
+	    		 boolean inceput = false;
+	    		 boolean incheiat = false;
+	    		 boolean care = false;
+	    		 boolean unde = false;
+	    		 if(introducereDate==false) {
+	    		     numeUtilizatorSiEmail = txtInput.getText();
+	    		     for(int i=0; i<numeUtilizatorSiEmail.length(); i++)
+	    		    	 if(numeUtilizatorSiEmail.charAt(i)!=' ')
+	    		    		 if(numeEmail==1)
+	    		    			 numeUtilizator = numeUtilizator + numeUtilizatorSiEmail.charAt(i);
+	    		    		 else
+	    		    			 email = email + numeUtilizatorSiEmail.charAt(i);
+	    		    	 else
+	    		    		 numeEmail++;
+	    		     txtInput.setText("");
+	    			 introducereDate=true;
+	    			 zonaChat.append("Buna ziua si bine ati venit. Cu ce va pot ajuta?\n");
+	    		 }
+	    		 else
+	    		 {
+	    			 if(initializare == true)
+	    			 {
+	    				 initializare = false;
+	    			 }
+	                String txtIntrodus = txtInput.getText();
+	                zonaChat.append("Input: " + txtIntrodus + "\n");
+	                String[] numeDomnitorSiLocatia = new String[2];
+	                numeDomnitorSiLocatia = cautaNumeDomnitor(txtIntrodus);
+	                nrRanduri = 0;
+	                try {
+	           	        Connection conn = DriverManager.getConnection("jdbc:sqlserver://localhost\\MSSQLSERVER:1433;databaseName=domnitori", "sa", "Elicopter#97");
+	           	        Statement statement = conn.createStatement();
+		                String queryString = "select * from domnitoriRomania where UPPER(nume) LIKE UPPER('%" + numeDomnitorSiLocatia[0] + "%')";
+		                if(numeDomnitorSiLocatia[1] != "")
+		                	queryString = queryString + " AND UPPER(locatie) LIKE UPPER('%" + numeDomnitorSiLocatia[1] + "%')";
+	                	ResultSet rs = statement.executeQuery(queryString);
+	                	while(rs.next())
+	                	{
+	                		nrRanduri++;
+	                		numeDomnitor = rs.getString(1);
+	 	                	anNastere = rs.getInt(2);
+	 	                	anInceputDomnie = rs.getInt(3);
+	 	                	anSfarsitDomnie = rs.getInt(4);
+	 	                	anDeces = rs.getInt(5);
+	 	                	locatie = rs.getString(6);
+	                	}
+	                	if(nrRanduri > 1)
+	 	                {
+	 	                	zonaChat.append("Nu am gasit un raspuns. \n");
+	 	                }
+	 	                else
+	 	                {
+	 	       	 			if(txtIntrodus.toUpperCase().contains("DOMNI"))
+	 	       	 				domni=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("NASCUT"))
+	 	       	 				nascut=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("MURIT"))
+	 	       	 				murit=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("ANI"))
+	 	       	 				ani=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("AN"))
+	 	       	 				an=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("INTRE"))
+	 	       	 				intre=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("CAT"))
+	 	       	 				cat=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("INCEPUT"))
+	 	       	 				inceput=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("INCHEIAT")||(txtIntrodus.toUpperCase().contains("SFARSIT")))
+	 	       	 				incheiat=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("CARE"))
+	 	       	 				care=true;
+	 	       	 			if(txtIntrodus.toUpperCase().contains("UNDE"))
+	 	       	 				unde=true;
+	 	       	 			if((domni==true)&&(inceput==true))
+	 	       	 				zonaChat.append(numeDomnitor + " si-a inceput domnia in anul " + Integer.toString(anInceputDomnie));
+	 	       	 			if((domni==true)&&(incheiat==true))
+	 	       	 				zonaChat.append(numeDomnitor + " si-a incheiat domnia in anul " + Integer.toString(anInceputDomnie));	
+	 	       	 			if((domni==true)&&(unde==true))
+	 	       	 				zonaChat.append(numeDomnitor + " a domnit in " + locatie);	
+	 	       	 			if((domni==true)&&(intre==true)&&(ani==true))
+	 	       	 				zonaChat.append(numeDomnitor + " a domnit intre anii: " + Integer.toString(anInceputDomnie) + " si " + Integer.toString(anSfarsitDomnie));
+	 	       	 			if((domni==true)&&(cat==true)&&(ani==true))
+	 	       	 				zonaChat.append(numeDomnitor + " a domnit " + Integer.toString(anSfarsitDomnie-anInceputDomnie) + " ani");
+	 	       	 			if((nascut==true)&&(an==true))
+	 	       	 				zonaChat.append(numeDomnitor + " s-a nascut in anul " + Integer.toString(anNastere));
+	 	       	 			if((murit==true)&&(an==true))
+	 	       	 				zonaChat.append(numeDomnitor + " a decedat in anul " + Integer.toString(anDeces));
+	 	       	 			if((domni==true)&&(an==true)&&(inceput==true)&&(care==true))
+	 	       	 				zonaChat.append(numeDomnitor + " si-a inceput domnia in anul " + Integer.toString(anInceputDomnie));
+	 	       	 			if((domni==true)&&(an==true)&&(incheiat==true)&&(care==true))
+	 	       	 				zonaChat.append(numeDomnitor + " si-a incheiat domnia in anul  " + Integer.toString(anSfarsitDomnie));
+	 	       	 			if((nascut==true)&&(an==true)&&(care==true))
+	 	       	 				zonaChat.append(numeDomnitor + " s-a nascut in anul " + Integer.toString(anNastere));
+	 	       	 			if((murit==true)&&(an==true)&&(care==true))
+	 	       	 				zonaChat.append(numeDomnitor + " a decedat in anul " + Integer.toString(anDeces));
+	 	       	 			zonaChat.append("\n");
+	 	                }
+	                }
+	                catch(Exception e)
+	                {
+	                	e.printStackTrace();
+	                }
+	                txtInput.setText("");
+	    		 }
+	    	 }
+	     });
+	}
+	     
+	     public String[] cautaNumeDomnitor(String propozitie) {
+	    	 String[] rezultat = {"", ""};
+	    	 String buffer = new String();
+	    	 boolean iaNumele = false;
+	    	 boolean iaLocatia = false;
+	    	 int k=0;
+	    	 for(int i=0; i<propozitie.length(); i++)
+	    	 {
+	    		 if((propozitie.charAt(i)!=' ')&&(propozitie.charAt(i)!=','))
+	    		 {
+	    			 buffer = buffer + propozitie.charAt(i);
+	    		 }
+	    		 else
+	    		 {
+	    			 if((buffer.length()==2)&&(buffer.contains("in")))
+	    			 {
+	    				 iaLocatia = true;
+	    				 buffer = "";
+	    			 }
+	    			 else
+	    				 if((iaLocatia)&&(buffer.length()>3))
+	    				 {
+	    					 rezultat[1]=rezultat[1] + buffer;
+	    					 iaLocatia = false;
+	    				 }
+	    				 else
+	    					 iaLocatia=false;
+	    					 
+	    			 if((buffer.length()==1)&&((buffer.contains("a"))||((buffer.length()==3)&&(buffer.contains("-a")))))
+	    			 {
+	    				 iaNumele = true;
+	    				 buffer = "";
+	    			 }
+	    			 else
+	    				 if(iaNumele)
+	    				 {
+	    					 if(k==1)
+	    						 rezultat[0] = rezultat[0] + buffer + " ";
+	    					 if(k==2)
+	    						 rezultat[0] = rezultat[0] + buffer;
+	    					 buffer = "";
+	    					 if(k>2)
+	    						 iaNumele=false;
+	    					 k++;
+	    				 }
+	    				 else
+	    					 buffer = "";	 
+	    		 }
+	    				 
+	    	 }
+	    	 if(iaNumele)
+	    		 rezultat[0] = rezultat[0] + buffer;
+	    	 if(iaLocatia)
+	    		 rezultat[1] = rezultat[1] + buffer;
+	    	 return rezultat;
+	     }
+	
+	public static void main(String[] args){
+		sesiune test = new sesiune();
+		
+	}
+}
